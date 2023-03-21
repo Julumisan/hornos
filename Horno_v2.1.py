@@ -21,11 +21,27 @@ Tareas que realiza:     Control de Horno
 
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
+import csv
+import pandas as pd
+import tkinter as tk
 from tkinter import *
+from tkinter import filedialog
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from art_daq import prueba
 
-
+def exportar_datos_csv(x, y1, y2, y3):
+    # Crear ventana pop-up
+    root = tk.Tk()
+    root.withdraw()  
+    # Abrir diálogo para seleccionar la ruta y el nombre del archivo
+    nombre_archivo = filedialog.asksaveasfilename(defaultextension=".csv")
+    
+    # Escribir datos en el archivo CSV
+    with open(nombre_archivo, 'w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(["Tiempo (s)", "Temperatura (°C)", "Temp. Máx (°C)", "Temp. Mín (°C)"])
+        for i in range(len(x)):
+            writer.writerow([x[i], y1[i], y2[i], y3[i]])
 
 def transform_voltage_temp():
     # Cambiar de Voltaje a temperatura
@@ -34,8 +50,30 @@ def transform_voltage_temp():
     return temp
 
 
+def leer_datos_csv(nombre_archivo):
+   # Leer datos del archivo CSV
+   with open(nombre_archivo, 'r') as file:
+       reader = csv.reader(file)
+       header = next(reader)
+       data = list(reader)
+   
+   # Convertir datos a listas
+   tiempo = [float(row[0]) for row in data]
+   temperatura = [float(row[1]) for row in data]
+   temp_max = [float(row[2]) for row in data]
+   temp_min = [float(row[3]) for row in data]
 
-try:            
+   # Crear gráfica
+   plt.plot(tiempo, temperatura, label="Temperatura")
+   plt.plot(tiempo, temp_max, label="Temp. Máx")
+   plt.plot(tiempo, temp_min, label="Temp. Mín")
+   plt.xlabel("Tiempo (s)")
+   plt.ylabel("Temperatura (°C)")
+   plt.legend()
+   plt.show()
+
+try:        
+    leer_datos_csv("datos_grafica.csv")    
     prueba.safe_state("PFG")
     chan_d = "PFG/port0/line1"
     chan_a = "PFG/ao0"
@@ -163,7 +201,9 @@ try:
 
 finally:
     prueba.safe_state("PFG")
-
+    exportar_datos_csv(x, y1, y2, y3)
+    
+      
 
 
 
