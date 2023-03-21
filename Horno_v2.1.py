@@ -72,8 +72,7 @@ def leer_datos_csv(nombre_archivo):
    plt.legend()
    plt.show()
 
-try:        
-    leer_datos_csv("datos_grafica.csv")    
+try:          
     prueba.safe_state("PFG")
     chan_d = "PFG/port0/line1"
     chan_a = "PFG/ao0"
