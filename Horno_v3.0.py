@@ -47,9 +47,11 @@ class HornoControl:
         self.max_temp = 25
         self.min_temp = 20
         
+        # Nombre del device
+        self.device_name = "Dev1"
         # Canales de entrada y salida del horno.
-        self.chan_d = "PFG/port0/line1"
-        self.chan_a = "PFG/ao0"
+        self.chan_d = self.device_name+"/port0/line1"
+        self.chan_a = self.device_name+"/ao0"
 
         # Crea la interfaz gráfica de usuario utilizando tkinter.
         self.setup_gui()
@@ -117,11 +119,11 @@ class HornoControl:
     
     def run(self):
         try:
-            prueba.safe_state("PFG")
+            prueba.safe_state(self.device_name)
             self.root.mainloop()
             
         finally:
-            prueba.safe_state("PFG")
+            prueba.safe_state(self.device_name)
             self.exportar_datos_csv(self.x, self.y1, self.y2, self.y3)
 
 
@@ -144,7 +146,7 @@ class HornoControl:
 
     def transform_voltage_temp(self):
         # Cambiar de Voltaje a temperatura
-        temp = prueba.get_voltage_analogic("PFG/ai0")*100 
+        temp = prueba.get_voltage_analogic(self.device_name+"/ai0")*100 
         # print("Temperatura leída: {:.2f} ºC".format(temp))
         return temp
 
