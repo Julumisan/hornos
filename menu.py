@@ -10,7 +10,7 @@ La idea de este Script es que sea el menú de elección.
 
 import tkinter as tk
 from tkinter import filedialog, messagebox
-import subprocess
+import subprocess 
 import graficar
 import sys
 
@@ -19,6 +19,7 @@ def control():
     # función para la opción "Control"
     print("Soy el control")
     subprocess.run(['python', 'Horno_v3.0.py'])
+    
     
 def ver_grafica():
     # función para la opción "Ver Gráfica"
