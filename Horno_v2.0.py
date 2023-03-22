@@ -2,7 +2,7 @@
 """
 Created on Tue Mar 21 19:03:08 2023
 
-@author: julu
+@author: Julu
 
 Versión 2.0 del Horno. Basada en la v1.0. Esta vez con uso de mi propia
 librería art-daq. La cual se descarga a través de pip install art-daq.

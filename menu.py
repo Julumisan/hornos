@@ -2,7 +2,7 @@
 """
 Created on Tue Mar 21 20:22:07 2023
 
-@author: julu
+@author: Julu
 
 La idea de este Script es que sea el menú de elección.
 
@@ -18,7 +18,7 @@ import sys
 def control():
     # función para la opción "Control"
     print("Soy el control")
-    subprocess.run(['python', 'Horno_v2.1.py'])
+    subprocess.run(['python', 'Horno_v3.0.py'])
     
 def ver_grafica():
     # función para la opción "Ver Gráfica"
