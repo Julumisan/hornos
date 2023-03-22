@@ -2,9 +2,9 @@
 """
 Created on Tue Mar 21 19:03:08 2023
 
-@author: julu
+@author: Julu
 
-Versión 2.0 del Horno. Basada en la v1.0. Esta vez con uso de mi propia
+Versión 2.1 del Horno. Basada en la v1.0. Esta vez con uso de mi propia
 librería art-daq. La cual se descarga a través de pip install art-daq.
 
 
@@ -29,6 +29,8 @@ from tkinter import filedialog
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from art_daq import prueba
 
+
+    
 def exportar_datos_csv(x, y1, y2, y3):
     # Crear ventana pop-up
     root = tk.Tk()
@@ -71,6 +73,63 @@ def leer_datos_csv(nombre_archivo):
    plt.ylabel("Temperatura (°C)")
    plt.legend()
    plt.show()
+   
+def grafica_real_time(i):
+ 
+     global count
+     count += 1
+     
+     # Agregar un nuevo valor al eje x de la gráfica
+     x.append(count*0.5)
+     global tempG
+     global max_temp
+     global min_temp
+     # Obtener la temperatura actual y agregarla al eje y de la gráfica
+     tempG = transform_voltage_temp()
+     y1.append(tempG)
+     y2.append(max_temp)
+     y3.append(min_temp)
+     
+     # Imprimir el tiempo transcurrido y la temperatura actual en la consola - Debug option
+     print("Tiempo: {:.2f}s, Temperatura {:.2f}".format(count*0.5,tempG))
+     
+     # Borramos la gráfica anterior para actualizarla con la nueva información
+     plt.cla()
+     # Graficamos los datos actualizados
+     plt.plot(x,y1,label='Temperatura')
+     plt.plot(x,y2,label='Temp. Máx')
+     plt.plot(x,y3,label='Temp. Mín')
+     
+     if max_temp < min_temp:
+         max_temp = min_temp + 2
+     
+     if max_temp < tempG:
+         print("Estamos calientes")
+         print(prueba.set_voltage_analogic(chan_a, 0))
+         prueba.set_voltage_digital(chan_d, True)
+     
+     elif tempG < min_temp:
+         print("Estamos frios")
+         prueba.set_voltage_digital(chan_d, False)
+         print(prueba.set_voltage_analogic(chan_a, 5))
+     else:
+         print("tamo bien")
+         prueba.set_voltage_digital(chan_d, False)
+         print(prueba.set_voltage_analogic(chan_a, 2.5))
+     
+ 
+ 
+def update_max_temp():
+     global max_temp
+     temp_str = max_temp_entry.get()
+     if temp_str:
+         max_temp = float(temp_str)
+def update_min_temp():
+     global min_temp
+     temp_str = min_temp_entry.get()
+     if temp_str:
+         min_temp = float(temp_str)
+
 
 try:          
     prueba.safe_state("PFG")
@@ -83,64 +142,6 @@ try:
     x, y1, y2, y3 = [], [], [], []  # Listas vacías para almacenar los valores de tiempo y temperatura
     max_temp = 25  # Valor por defecto de la temperatura máxima
     min_temp = 20  # Valor por defecto de la temperatura mínima
-    
-    def grafica_real_time(i):
-        
-        global count
-        count += 1
-        
-        # Agregar un nuevo valor al eje x de la gráfica
-        x.append(count*0.5)
-        global tempG
-        global max_temp
-        global min_temp
-        # Obtener la temperatura actual y agregarla al eje y de la gráfica
-        tempG = transform_voltage_temp()
-        y1.append(tempG)
-        y2.append(max_temp)
-        y3.append(min_temp)
-        
-        # Imprimir el tiempo transcurrido y la temperatura actual en la consola - Debug option
-        print("Tiempo: {:.2f}s, Temperatura {:.2f}".format(count*0.5,tempG))
-        
-        # Borramos la gráfica anterior para actualizarla con la nueva información
-        plt.cla()
-        # Graficamos los datos actualizados
-        plt.plot(x,y1,label='Temperatura')
-        plt.plot(x,y2,label='Temp. Máx')
-        plt.plot(x,y3,label='Temp. Mín')
-        
-        if max_temp < min_temp:
-            max_temp = min_temp + 2
-        
-        if max_temp < tempG:
-            print("Estamos calientes")
-            print(prueba.set_voltage_analogic(chan_a, 0))
-            prueba.set_voltage_digital(chan_d, True)
-
-        elif tempG < min_temp:
-            print("Estamos frios")
-            prueba.set_voltage_digital(chan_d, False)
-            print(prueba.set_voltage_analogic(chan_a, 5))
-        else:
-            print("tamo bien")
-            prueba.set_voltage_digital(chan_d, False)
-            print(prueba.set_voltage_analogic(chan_a, 2.5))
-            
-    
-    
-    def update_max_temp():
-        global max_temp
-        temp_str = max_temp_entry.get()
-        if temp_str:
-            max_temp = float(temp_str)
-        
-    def update_min_temp():
-        global min_temp
-        temp_str = min_temp_entry.get()
-        if temp_str:
-            min_temp = float(temp_str)
-    
     
     
     # Crear la interfaz gráfica
@@ -201,8 +202,8 @@ try:
 finally:
     prueba.safe_state("PFG")
     exportar_datos_csv(x, y1, y2, y3)
-    
-      
+        
+          
 
 
 

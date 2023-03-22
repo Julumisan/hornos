@@ -2,7 +2,7 @@
 """
 Created on Tue Mar 21 20:29:59 2023
 
-@author: jumis
+@author: Julu
 """
 
 import csv
