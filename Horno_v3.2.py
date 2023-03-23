@@ -5,7 +5,7 @@ Created on Wed Mar 22 10:54:52 2023
 
 @author: Julu
 
-Versión 3.2.2 del Horno. Basada en la v3.1. Esta vez con uso de mi propia
+Versión 3.2.5 del Horno. Basada en la v3.1. Esta vez con uso de mi propia
 librería art-daq. La cual se descarga a través de pip install art-daq.
 También está dentro de una clase, mejorando el estilo de programación para
 que no esté todo tirado. Añado funcionalidades para poder trastear sin
@@ -33,8 +33,6 @@ import matplotlib.animation as animation
 import csv
 import tkinter as tk
 import random
-from tkinter import *
-from tkinter import filedialog
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from art_daq import prueba
 
@@ -44,6 +42,7 @@ class HornoControl:
     
     # Este método se llama cuando se crea una nueva instancia de la clase.
     # Se utiliza para inicializar los atributos de la clase.
+    # Básicamente el constructor
     def __init__(self):
         # Inicializa el contador de tiempo, la temperatura global, las listas para las gráficas y los valores máximo y mínimo de temperatura.
         self.count = 0
@@ -54,7 +53,9 @@ class HornoControl:
         self.paused = False
         
         # Nombre del device
-        self.device_name = "Dev1"
+        self.device_name = prueba.get_connected_device()
+        if self.device_name is None:
+            self.device_name = "Dev1"
         # Canales de entrada y salida del horno.
         self.chan_d = self.device_name+"/port0/line1"
         self.chan_a = self.device_name+"/ao0"
@@ -67,71 +68,75 @@ class HornoControl:
      # Este método crea la interfaz gráfica de usuario utilizando tkinter.   
     def setup_gui(self):
         # Crea la ventana principal de la aplicación.
-        self.root = Tk()
+        self.root = tk.Tk()
         # self.root.geometry("1000x600")
         
         # Crea un marco para contener los widgets.
-        self.frame = Frame(self.root)
+        self.frame = tk.Frame(self.root)
         self.frame.pack()
         
         # Crea una gráfica utilizando matplotlib y la coloca en la parte superior del marco.
         self.canvas = FigureCanvasTkAgg(plt.gcf(), master=self.frame)
         self.canvas.draw()
-        self.canvas.get_tk_widget().pack(side=TOP, fill=BOTH, expand=1)
+        self.canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
         
         # Crea un marco para contener los widgets de temperatura máxima y mínima.
-        temp_frame = Frame(self.frame)
-        temp_frame.pack(side=TOP, padx=20, pady=20, anchor="center")
+        temp_frame = tk.Frame(self.frame)
+        temp_frame.pack(side=tk.TOP, padx=20, pady=20, anchor="center")
         
         # Crea una subventana para los widgets relacionados con la temperatura máxima.
-        max_temp_frame = Frame(temp_frame)
-        max_temp_frame.pack(side=LEFT)
+        max_temp_frame = tk.Frame(temp_frame)
+        max_temp_frame.pack(side=tk.LEFT)
         
         # Crea una etiqueta para la temperatura máxima y la agrega a la subventana.
-        self.max_temp_label = Label(max_temp_frame, text="Temperatura Máxima:")
-        self.max_temp_label.pack(side=TOP, padx=20)
+        self.max_temp_label = tk.Label(max_temp_frame, text="Temperatura Máxima:")
+        self.max_temp_label.pack(side=tk.TOP, padx=20)
         
         # Crea una caja de texto para ingresar la temperatura máxima y la agrega a la subventana.
-        self.max_temp_entry = Entry(max_temp_frame)
-        self.max_temp_entry.pack(side=TOP)
+        self.max_temp_entry = tk.Entry(max_temp_frame)
+        self.max_temp_entry.pack(side=tk.TOP)
         
         # Crea un botón para actualizar la temperatura máxima y lo agrega a la subventana.
-        self.update_max_temp_button = Button(max_temp_frame, text="Actualizar Máxima", command=self.update_max_temp)
-        self.update_max_temp_button.pack(side=TOP, pady=10)
+        self.update_max_temp_button = tk.Button(max_temp_frame, text="Actualizar Máxima", command=self.update_max_temp)
+        self.update_max_temp_button.pack(side=tk.TOP, pady=10)
         
         # Crea una subventana para los widgets relacionados con la temperatura mínima.
-        min_temp_frame = Frame(temp_frame)
-        min_temp_frame.pack(side=LEFT)
+        min_temp_frame = tk.Frame(temp_frame)
+        min_temp_frame.pack(side=tk.LEFT)
         
         # Crea una etiqueta para la temperatura mínima y la agrega a la subventana.
-        self.min_temp_label = Label(min_temp_frame, text="Temperatura Mínima:")
-        self.min_temp_label.pack(side=TOP, padx=20)
+        self.min_temp_label = tk.Label(min_temp_frame, text="Temperatura Mínima:")
+        self.min_temp_label.pack(side=tk.TOP, padx=20)
         
         # Crea una caja de texto para ingresar la temperatura mínima y la agrega a la subventana.
-        self.min_temp_entry = Entry(min_temp_frame)
-        self.min_temp_entry.pack(side=TOP)
+        self.min_temp_entry = tk.Entry(min_temp_frame)
+        self.min_temp_entry.pack(side=tk.TOP)
         
         # Crea un botón para actualizar la temperatura mínima y lo agrega a la subventana.
-        self.update_min_temp_button = Button(min_temp_frame, text="Actualizar Mínima", command=self.update_min_temp)
-        self.update_min_temp_button.pack(side=TOP, pady=10)
+        self.update_min_temp_button = tk.Button(min_temp_frame, text="Actualizar Mínima", command=self.update_min_temp)
+        self.update_min_temp_button.pack(side=tk.TOP, pady=10)
         
         # Crea un botón para salir de la aplicación y lo agrega a la ventana principal.
-        self.exitButton = Button(self.root, text="SALIR", command=self.root.destroy, fg="red")
-        self.exitButton.pack(side=BOTTOM, pady=10)
+        self.exitButton = tk.Button(self.root, text="SALIR", command=self.root.destroy, fg="red")
+        self.exitButton.pack(side=tk.BOTTOM, pady=10)
+        
         
         # Crea una animación para actualizar la gráfica de temperatura en tiempo real.
         self.ani = animation.FuncAnimation(plt.gcf(), self.grafica_real_time, interval=500)
         self.ani_running = self.canvas.get_tk_widget().after(0, self.ani.event_source.start)
     
         # Crea el botón de guardar los datos
-        self.save_button = Button(self.root, text="Guardar datos", command=self.save_data)
-        self.save_button.pack(side=BOTTOM, pady=10)   
+        self.save_button = tk.Button(self.root, text="Guardar datos", command=self.save_data)
+        self.save_button.pack(side=tk.BOTTOM, pady=10)   
         
         # Crea el botón de pausa
-        self.pause_button = Button(self.root, text="Pausar", command=self.toggle_pause)
-        self.pause_button.pack(side=BOTTOM, pady=10)
+        self.pause_button = tk.Button(self.root, text="Pausar", command=self.toggle_pause)
+        self.pause_button.pack(side=tk.BOTTOM, pady=10)
         
-
+        # Crea una animación para actualizar la gráfica de temperatura en tiempo real.
+        self.ani = animation.FuncAnimation(plt.gcf(), self.grafica_real_time, interval=500)
+        self.ani_running = self.canvas.get_tk_widget().after(0, self.ani.event_source.start)
+    
         
         
     def run(self):
@@ -151,7 +156,7 @@ class HornoControl:
         root = tk.Tk()
         root.withdraw()  
         # Abrir diálogo para seleccionar la ruta y el nombre del archivo
-        nombre_archivo = filedialog.asksaveasfilename(defaultextension=".csv")
+        nombre_archivo = tk.filedialog.asksaveasfilename(defaultextension=".csv")
         
         # Escribir datos en el archivo CSV
         with open(nombre_archivo, 'w', newline='') as file:
@@ -168,34 +173,12 @@ class HornoControl:
         # print("Temperatura leída: {:.2f} ºC".format(temp))
         return temp
 
-
-
-    def leer_datos_csv(self, nombre_archivo):
-       # Leer datos del archivo CSV
-       with open(nombre_archivo, 'r') as file:
-           reader = csv.reader(file)
-           header = next(reader)
-           data = list(reader)
-       
-       # Convertir datos a listas
-       tiempo = [float(row[0]) for row in data]
-       temperatura = [float(row[1]) for row in data]
-       temp_max = [float(row[2]) for row in data]
-       temp_min = [float(row[3]) for row in data]
-
-       # Crear gráfica
-       plt.plot(tiempo, temperatura, label="Temperatura")
-       plt.plot(tiempo, temp_max, label="Temp. Máx")
-       plt.plot(tiempo, temp_min, label="Temp. Mín")
-       plt.xlabel("Tiempo (s)")
-       plt.ylabel("Temperatura (°C)")
-       plt.legend()
-       plt.show()
        
        
     # Este método se encarga de actualizar la gráfica de temperatura en tiempo real.   
     def grafica_real_time(self, i):
-       if not self.paused:
+        if not self.paused:
+            self.pause_button.config(text="Pausar")
             self.count += 1
             
             # Agregar un nuevo valor al eje x de la gráfica
@@ -241,6 +224,8 @@ class HornoControl:
                 self.tempG = self.random_number_between_20_and_40(self.tempG)
                 # prueba.set_voltage_digital(self.chan_d, False)
                 # print(prueba.set_voltage_analogic(self.chan_a, 2.5))
+        else:
+            self.pause_button.config(text="Reanudar")
                
        
        
@@ -267,16 +252,26 @@ class HornoControl:
     # Permite un incremento por parámetro para poder imitar el horno
     # Se usa cuando no se tiene a mano la DAQ
     def random_number_between_20_and_40(self, last_number=None, increment=0):
+        # Definir el rango de números permitidos
         min_number = 20
         max_number = 40
+        # Establecer la diferencia máxima permitida entre el último número generado y el siguiente
         allowed_diff = 0.2
-    
+        
+        # Si no se ha generado un número previamente (last_number es None),
+        # generar un número aleatorio entre el rango permitido
         if last_number is None:
             return random.uniform(min_number, max_number)
-    
+        
+        # Establecer el límite inferior para el próximo número aleatorio,
+        # asegurándose de que no sea menor que el mínimo permitido
         min_limit = max(min_number, last_number - allowed_diff)
+        # Establecer el límite superior para el próximo número aleatorio,
+        # asegurándose de que no sea mayor que el máximo permitido
         max_limit = min(max_number, last_number + allowed_diff)
-    
+        
+        # Generar y devolver un número aleatorio entre los límites calculados,
+        # sumando el valor del incremento dado por parámetro
         return random.uniform(min_limit, max_limit) + increment
 
     
