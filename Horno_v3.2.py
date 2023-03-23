@@ -5,7 +5,7 @@ Created on Wed Mar 22 10:54:52 2023
 
 @author: Julu
 
-Versión 3.2 del Horno. Basada en la v3.1. Esta vez con uso de mi propia
+Versión 3.2.2 del Horno. Basada en la v3.1. Esta vez con uso de mi propia
 librería art-daq. La cual se descarga a través de pip install art-daq.
 También está dentro de una clase, mejorando el estilo de programación para
 que no esté todo tirado. Añado funcionalidades para poder trastear sin
@@ -227,15 +227,18 @@ class HornoControl:
             
             if self.max_temp < self.tempG:
                 print("Estamos calientes")
+                self.tempG = self.random_number_between_20_and_40(self.tempG, -0.2)
                 # print(prueba.set_voltage_analogic(self.chan_a, 0))
                 # prueba.set_voltage_digital(self.chan_d, True)
             
             elif self.tempG < self.min_temp:
                 print("Estamos frios")
+                self.tempG = self.random_number_between_20_and_40(self.tempG, 0.2)
                 # prueba.set_voltage_digital(self.chan_d, False)
                 # print(prueba.set_voltage_analogic(self.chan_a, 5))
             else:
                 print("tamo bien")
+                self.tempG = self.random_number_between_20_and_40(self.tempG)
                 # prueba.set_voltage_digital(self.chan_d, False)
                 # print(prueba.set_voltage_analogic(self.chan_a, 2.5))
                
@@ -259,13 +262,23 @@ class HornoControl:
         if temp_str:
             self.min_temp = float(temp_str)
        
-    def random_number_between_20_and_40(self, previous_number=None):
-        if previous_number is None:
-            return random.uniform(20, 40)
+    # Este método genera un número pseudoaleatorio entre 20 y 40,
+    # con una variación máxima de 0.2 respecto al número anterior.
+    # Permite un incremento por parámetro para poder imitar el horno
+    # Se usa cuando no se tiene a mano la DAQ
+    def random_number_between_20_and_40(self, last_number=None, increment=0):
+        min_number = 20
+        max_number = 40
+        allowed_diff = 0.2
     
-        min_value = max(20, previous_number - 0.2)
-        max_value = min(40, previous_number + 0.2)
-        return random.uniform(min_value, max_value)
+        if last_number is None:
+            return random.uniform(min_number, max_number)
+    
+        min_limit = max(min_number, last_number - allowed_diff)
+        max_limit = min(max_number, last_number + allowed_diff)
+    
+        return random.uniform(min_limit, max_limit) + increment
+
     
     def toggle_pause(self):
         self.paused = not self.paused
