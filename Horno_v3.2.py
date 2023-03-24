@@ -141,11 +141,11 @@ class HornoControl:
         
     def run(self):
         try:
-            # prueba.safe_state(self.device_name)
+            prueba.safe_state(self.device_name)
             self.root.mainloop()
             
         finally:
-            # prueba.safe_state(self.device_name)
+            prueba.safe_state(self.device_name)
             # self.exportar_datos_csv(self.x, self.y1, self.y2, self.y3)
             pass
 
@@ -210,20 +210,19 @@ class HornoControl:
             
             if self.max_temp < self.tempG:
                 print("Estamos calientes")
-                self.tempG = self.random_number_between_20_and_40(self.tempG, -0.2)
-                # print(prueba.set_voltage_analogic(self.chan_a, 0))
-                # prueba.set_voltage_digital(self.chan_d, True)
+                # self.tempG = self.random_number_between_20_and_40(self.tempG, -0.2)
+                self.warm_state()
             
             elif self.tempG < self.min_temp:
                 print("Estamos frios")
-                self.tempG = self.random_number_between_20_and_40(self.tempG, 0.2)
-                # prueba.set_voltage_digital(self.chan_d, False)
-                # print(prueba.set_voltage_analogic(self.chan_a, 5))
+                # self.tempG = self.random_number_between_20_and_40(self.tempG, 0.2)
+                self.cold_state()
+                
             else:
                 print("tamo bien")
-                self.tempG = self.random_number_between_20_and_40(self.tempG)
-                # prueba.set_voltage_digital(self.chan_d, False)
-                # print(prueba.set_voltage_analogic(self.chan_a, 2.5))
+                # self.tempG = self.random_number_between_20_and_40(self.tempG)
+                self.mild_state()
+                
         else:
             self.pause_button.config(text="Reanudar")
                
@@ -247,6 +246,8 @@ class HornoControl:
         if temp_str:
             self.min_temp = float(temp_str)
        
+        
+       
     # Este método genera un número pseudoaleatorio entre 20 y 40,
     # con una variación máxima de 0.2 respecto al número anterior.
     # Permite un incremento por parámetro para poder imitar el horno
@@ -266,6 +267,7 @@ class HornoControl:
         # Establecer el límite inferior para el próximo número aleatorio,
         # asegurándose de que no sea menor que el mínimo permitido
         min_limit = max(min_number, last_number - allowed_diff)
+        
         # Establecer el límite superior para el próximo número aleatorio,
         # asegurándose de que no sea mayor que el máximo permitido
         max_limit = min(max_number, last_number + allowed_diff)
@@ -274,12 +276,38 @@ class HornoControl:
         # sumando el valor del incremento dado por parámetro
         return random.uniform(min_limit, max_limit) + increment
 
-    
-    def toggle_pause(self):
+
+    # Este método cambia el valor de la variable booleana self.paused de True a False (y viceversa)
+    def toggle_pause(self): 
         self.paused = not self.paused
-        
+    
+    
+    
+    # Este método llama a la función exportar_datos_csv() y le pasa los valores de las listas x, y1, y2 y y3 como argumentos
     def save_data(self):
         self.exportar_datos_csv(self.x, self.y1, self.y2, self.y3)
+        
+        
+        
+    # Este método establece la salida analógica en 0V y la salida digital en HIGH (5V)    
+    def warm_state(self):    
+        print(prueba.set_voltage_analogic(self.chan_a, 0))
+        prueba.set_voltage_digital(self.chan_d, True)
+        
+        
+    # Este método establece la salida analógica en 5V y la salida digital en LOW (0V)    
+    def cold_state(self):
+        prueba.set_voltage_digital(self.chan_d, False)
+        print(prueba.set_voltage_analogic(self.chan_a, 5))
+        
+        
+    # Este método establece la salida analógica en 2.5V y la salida digital en LOW (0V)    
+    def mild_state(self):
+        prueba.set_voltage_digital(self.chan_d, False)
+        print(prueba.set_voltage_analogic(self.chan_a, 2.5))
+        
+        
+        
        
 if __name__ == "__main__":
     horno_control = HornoControl()
