@@ -34,7 +34,7 @@ import csv
 import tkinter as tk
 import random
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-from art_daq import prueba
+from art_daq import daq
 
 
     
@@ -53,7 +53,7 @@ class HornoControl:
         self.paused = False
         
         # Nombre del device
-        self.device_name = prueba.get_connected_device()
+        self.device_name = daq.get_connected_device()
         if self.device_name is None:
             self.device_name = "Dev1"
         # Canales de entrada y salida del horno.
@@ -141,11 +141,11 @@ class HornoControl:
         
     def run(self):
         try:
-            prueba.safe_state(self.device_name)
+            daq.safe_state(self.device_name)
             self.root.mainloop()
             
         finally:
-            prueba.safe_state(self.device_name)
+            daq.safe_state(self.device_name)
             # self.exportar_datos_csv(self.x, self.y1, self.y2, self.y3)
             pass
 
@@ -169,7 +169,7 @@ class HornoControl:
 
     def transform_voltage_temp(self):
         # Cambiar de Voltaje a temperatura
-        temp = prueba.get_voltage_analogic(self.device_name+"/ai0")*100 
+        temp = daq.get_voltage_analogic(self.device_name+"/ai0")*100 
         # print("Temperatura leída: {:.2f} ºC".format(temp))
         return temp
 
@@ -187,10 +187,10 @@ class HornoControl:
             self.max_temp
             self.min_temp
             # Obtener la temperatura actual y agregarla al eje y de la gráfica
-            # self.tempG = self.transform_voltage_temp()
+            self.tempG = self.transform_voltage_temp()
             
             # Obtener temperatura pseudorandom
-            self.tempG = self.random_number_between_20_and_40(self.tempG)
+            # self.tempG = self.random_number_between_20_and_40(self.tempG)
             self.y1.append(self.tempG)
             self.y2.append(self.max_temp)
             self.y3.append(self.min_temp)
@@ -291,20 +291,20 @@ class HornoControl:
         
     # Este método establece la salida analógica en 0V y la salida digital en HIGH (5V)    
     def warm_state(self):    
-        print(prueba.set_voltage_analogic(self.chan_a, 0))
-        prueba.set_voltage_digital(self.chan_d, True)
+        print(daq.set_voltage_analogic(self.chan_a, 0))
+        daq.set_voltage_digital(self.chan_d, True)
         
         
     # Este método establece la salida analógica en 5V y la salida digital en LOW (0V)    
     def cold_state(self):
-        prueba.set_voltage_digital(self.chan_d, False)
-        print(prueba.set_voltage_analogic(self.chan_a, 5))
+        daq.set_voltage_digital(self.chan_d, False)
+        print(daq.set_voltage_analogic(self.chan_a, 5))
         
         
     # Este método establece la salida analógica en 2.5V y la salida digital en LOW (0V)    
     def mild_state(self):
-        prueba.set_voltage_digital(self.chan_d, False)
-        print(prueba.set_voltage_analogic(self.chan_a, 2.5))
+        daq.set_voltage_digital(self.chan_d, False)
+        print(daq.set_voltage_analogic(self.chan_a, 2.5))
         
         
         
