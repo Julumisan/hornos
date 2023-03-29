@@ -19,7 +19,7 @@ import sys
 def control():
     # función para la opción "Control"
     print("Soy el control")
-    subprocess.run(['python', 'Horno_v3.2.py'])
+    subprocess.run(['python', 'Horno_v3.3.py'])
     
     
 def ver_grafica():
