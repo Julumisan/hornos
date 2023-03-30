@@ -177,14 +177,17 @@ class HornoGUI:
         """Verifica si la temperatura está dentro del rango establecido."""
         if self.horno_control.max_temp < self.horno_control.tempG:
             print("Estamos calientes")
-            self.horno_daq.warm_state()
+            # self.horno_daq.warm_state()
+            self.horno_control.tempG = self.horno_daq.random_number_between_20_and_40(self.horno_control.tempG, -0.1)
     
         elif self.horno_control.tempG < self.horno_control.min_temp:
             print("Estamos frios")
-            self.horno_daq.cold_state()
+            # self.horno_daq.cold_state()
+            self.horno_control.tempG = self.horno_daq.random_number_between_20_and_40(self.horno_control.tempG, 0.1)
         else:
             print("tamo bien")
-            self.horno_daq.mild_state()
+            # self.horno_daq.mild_state()
+            self.horno_control.tempG = self.horno_daq.random_number_between_20_and_40(self.horno_control.tempG)
     
     def update_max_temp(self):
         """
@@ -217,7 +220,7 @@ class HornoGUI:
             tk.messagebox.showerror("Error", "Por favor, ingrese un número válido para la temperatura mínima")
     
     def update_act_temp(self):
-        self.horno_control.tempG = self.horno_daq.transform_voltage_temp()
+        self.horno_control.tempG = self.horno_daq.random_number_between_20_and_40(self.horno_control.tempG)
         return self.horno_control.tempG
     
     def update_current_temp(self):

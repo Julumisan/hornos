@@ -12,6 +12,7 @@ que no esté todo tirado. Añado funcionalidades para poder trastear sin
 necesidad de la tarjeta. Mejora de comentarios, para que tenga el estilo
 correcto. 
 
+VERSION SIN DAQ
 
 Mejoras TO DO:                          
                 
@@ -54,9 +55,9 @@ class HornoControl:
         self.started = False        # Indicador de si se ha iniciado la adquisición de datos
 
         # Nombre del device
-        self.device_name = daq.get_connected_device()
-        if self.device_name is None:
-            self.device_name = "Dev1"
+        # self.device_name = daq.get_connected_device()
+        # if self.device_name is None:
+        self.device_name = "Dev1"
 
         self.horno_daq = HornoDAQ(self.device_name, self)
         self.horno_gui = HornoGUI(self, self.horno_daq)
@@ -70,11 +71,11 @@ class HornoControl:
         la interfaz gráfica de usuario.
         """
         try:
-            daq.safe_state(self.device_name)
+            # daq.safe_state(self.device_name)
             self.root.mainloop()
 
         finally:
-            daq.safe_state(self.device_name)
+            # daq.safe_state(self.device_name)
             # self.exportar_datos_csv(self.x, self.y1, self.y2, self.y3)
             pass
 
