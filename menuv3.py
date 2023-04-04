@@ -5,7 +5,6 @@ Al seleccionar la opción "Control", se ejecutará el script HornoControl.py.
 Al seleccionar la opción "Ver Gráfica", se abrirá una ventana de selección de archivo que permitirá al usuario
 seleccionar un archivo de datos CSV.
 Si se selecciona un archivo válido, se graficarán los datos contenidos en él.
-Además, se cargará una imagen "icono.png" que se mostrará en el botón "Ver Gráfica".
 
 Este script utiliza la biblioteca Tkinter para crear una interfaz gráfica de usuario (GUI) y para manejar eventos de usuario.
 
@@ -52,11 +51,11 @@ def ver_grafica():
     print("Archivo de datos:", archivo_datos)
     if archivo_datos:
         graficar.leer_datos_csv(archivo_datos)
-        imagen_icono = None
+        # imagen_icono = None
     else:
         tk.messagebox.showerror("Error", "No se ha seleccionado ningún archivo")
-        imagen_icono = tk.PhotoImage(file="icono.png")
-        boton_ver_grafica.config(image=imagen_icono, compound="left")
+        # imagen_icono = tk.PhotoImage(file="icono.png")
+        # boton_ver_grafica.config(image=imagen_icono, compound="left")
 
 def salir():
 
