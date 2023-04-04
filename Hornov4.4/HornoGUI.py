@@ -40,13 +40,24 @@ class HornoGUI:
         """
         Crea la interfaz gráfica de usuario utilizando tkinter y ttk.
         """
+        self.create_main_window()
+        self.create_temperature_graph()
+        # self.create_temperature_frame()
+        # self.create_button_subframe()
+        self.create_subframe_gen()
+        
+       
+
+    def create_main_window(self):
         # Crea la ventana principal de la aplicación.
         self.horno_control.root = tk.Tk()
-
         # Crea un marco para contener los widgets.
         self.horno_control.frame = ttk.Frame(self.horno_control.root)
-        self.horno_control.frame.pack()
-
+        self.horno_control.frame.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
+        # self.horno_control.frame.pack()
+        
+        
+    def create_temperature_graph(self):
         # Crea una figura y ejes utilizando la interfaz orientada a objetos.
         fig = Figure(figsize=(5, 4), dpi=100)
         self.ax = fig.add_subplot(111)
@@ -54,11 +65,13 @@ class HornoGUI:
         # Crea una gráfica utilizando matplotlib y la coloca en la parte superior del marco.
         self.horno_control.canvas = FigureCanvasTkAgg(fig, master=self.horno_control.frame)
         self.horno_control.canvas.draw()
-        self.horno_control.canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
-
+        self.horno_control.canvas.get_tk_widget().grid(row=0, column=0, padx=5, pady=5, sticky=tk.N)
+        self.create_animation(fig)
+        
+    def create_temperature_frame(self):
         # Crea un marco para contener los widgets de temperatura máxima y mínima.
-        temp_frame = tk.Frame(self.horno_control.frame, bg='lightgray')
-        temp_frame.pack(side=tk.TOP, padx=20, pady=20, anchor="center")
+        temp_frame = tk.Frame(self.subframe, bg='lightgray')
+        temp_frame.grid(row=0, column=0, padx=5, pady=5, sticky=tk.N)
         
         # Crea una etiqueta para la temperatura actual y la agrega al marco.
         self.horno_control.current_temp_label = tk.Label(temp_frame, text="Temperatura Actual:", font=("Arial", 14), bg='lightgray')
@@ -90,11 +103,6 @@ class HornoGUI:
             max_temp_frame, text="Actualizar Máxima", command=self.update_max_temp)
         self.horno_control.update_max_temp_button.pack(side=tk.TOP, pady=10)
         
-        # Crea un botón para Iniciar adquisición datos.
-        self.horno_control.iniciar_adquisicion_button = ttk.Button(
-        self.horno_control.root, text="Iniciar adquisición datos", command=self.iniciar_adquisicion, state='normal')
-        self.horno_control.iniciar_adquisicion_button.pack(side=tk.TOP, pady=10)
-        
         # Crea una etiqueta para la temperatura mínima y la agrega a la subventana.
         self.horno_control.min_temp_label = tk.Label(min_temp_frame, text="Temperatura Mínima:", font=("Arial", 14), bg='lightgray')
         self.horno_control.min_temp_label.pack(side=tk.TOP, padx=20)
@@ -107,34 +115,65 @@ class HornoGUI:
         self.horno_control.update_min_temp_button = ttk.Button(
             min_temp_frame, text="Actualizar Mínima", command=self.update_min_temp)
         self.horno_control.update_min_temp_button.pack(side=tk.TOP, pady=10)
-
-        # Crea un botón para salir de la aplicación y lo agrega a la ventana principal.
-        self.horno_control.exitButton = ttk.Button(
-            self.horno_control.root, text="SALIR", command=self.horno_control.root.destroy)
-        self.horno_control.exitButton.pack(side=tk.BOTTOM, pady=10)
-
+        
+        # Cambia el estado inicial de los otros botones a "disabled"
+        self.horno_control.update_max_temp_button.configure(state='disabled')
+        self.horno_control.update_min_temp_button.configure(state='disabled')
+        
+    def create_adquisition_button(self):
+        # Crea un botón para Iniciar adquisición datos.
+        self.horno_control.iniciar_adquisicion_button = ttk.Button(
+        self.button_subframe, text="Iniciar adquisición datos", command=self.iniciar_adquisicion, state='normal')
+        self.horno_control.iniciar_adquisicion_button.grid(row=0, column=0, padx=5, pady=5, sticky=tk.N)
+    
+    def create_save_button(self):
         # Crea el botón de guardar los datos
         self.horno_control.save_button = ttk.Button(
-            self.horno_control.root, text="Guardar datos", command=self.exportar_datos_csv)
-        self.horno_control.save_button.pack(side=tk.BOTTOM, pady=10)
+            self.button_subframe, text="Guardar datos", command=self.exportar_datos_csv)
+        self.horno_control.save_button.grid(row=2, column=0, padx=5, pady=5, sticky=tk.N)
+        # Cambia el estado inicial de los otros botones a "disabled"
+        self.horno_control.save_button.configure(state='disabled')
+        
+    def create_pause_button(self):
         # Crea el botón de pausa
         self.horno_control.pause_button = ttk.Button(
-        self.horno_control.root, text="Pausar", command=self.horno_control.toggle_pause)
-        self.horno_control.pause_button.pack(side=tk.BOTTOM, pady=10)
-    
+        self.button_subframe, text="Pausar", command=self.horno_control.toggle_pause)
+        self.horno_control.pause_button.grid(row=1, column=0, padx=5, pady=5, sticky=tk.N)     
+        # Cambia el estado inicial de los otros botones a "disabled"
+        self.horno_control.pause_button.configure(state='disabled')      
+        
+    def create_exit_button(self):
+        # Crea un botón para salir de la aplicación y lo agrega a la ventana principal.
+        self.horno_control.exitButton = ttk.Button(
+            self.button_subframe, text="SALIR", command=self.horno_control.root.destroy)
+        self.horno_control.exitButton.grid(row=3, column=0, padx=5, pady=5, sticky=tk.N)
+        # Cambia el estado inicial de los otros botones a "disabled"
+        # self.horno_control.exitButton.configure(state='disabled')
+        
+    def create_button_subframe(self):
+        # Crea un subframe para contener los botones
+        self.button_subframe = ttk.Frame(self.subframe)
+        self.button_subframe.grid(row=1, column=0, padx=5, pady=40, sticky=tk.S)
+        self.create_exit_button()
+        self.create_pause_button()
+        self.create_save_button()
+        self.create_adquisition_button()
+        
+    def create_subframe_gen(self):
+        self.subframe = ttk.Frame(self.horno_control.root)
+        self.subframe.grid(row=0, column=1, padx=5, pady=5, sticky=tk.N)
+        self.create_button_subframe()
+        self.create_temperature_frame()
+        
+
+         
+    def create_animation(self, fig: Figure):
         # Crea una animación para actualizar la gráfica de temperatura en tiempo real.
         self.horno_control.ani = animation.FuncAnimation(
             fig, self.grafica_real_time, interval=500)
         self.horno_control.ani_running = self.horno_control.canvas.get_tk_widget().after(
             0, self.horno_control.ani.event_source.start)
-        
-        # Cambia el estado inicial de los otros botones a "disabled"
-        # self.horno_control.exitButton.configure(state='disabled')
-        self.horno_control.save_button.configure(state='disabled')
-        self.horno_control.pause_button.configure(state='disabled')
-        self.horno_control.update_max_temp_button.configure(state='disabled')
-        self.horno_control.update_min_temp_button.configure(state='disabled')
-
+    
     
     def grafica_real_time(self, i: int):
         """
