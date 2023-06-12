@@ -8,47 +8,58 @@ Script para probar los comandos que hay que enviar al osciloscopio
 """
  
 import pyvisa
+import time
+import numpy as np
+import matplotlib.pyplot as plt
+
 
 # Función para obtener los valores de voltaje del Canal 1
 def obtener_voltajes_canal1(recurso):
     recurso.timeout = 100000
-    oscilloscope = recurso
+    osc = recurso
     
-    # Query the vertical scale and offset
-    # vertical_scale = float(oscilloscope.query("CH1:SCALE?"))
-    vertical_offset = float(oscilloscope.query("CH1:OFFSET?"))
-    vertical_divisions = float(oscilloscope.query("CH1:SCALE?"))
-    print (vertical_divisions)
+   # Configuración del osciloscopio
+    osc.write('DAT:SOU CH1')  # Establecer fuente de datos al canal 1
+    osc.write('DAT:ENC RPB')  # Establecer formato de datos como puntos binarios sin comprimir
+    osc.write('DAT:WID 2')    # Establecer ancho de datos en 2 bytes
+    osc.write('DAT:STAR 1')   # Establecer el primer punto de datos a leer
+    osc.write('DAT:STOP 1000')  # Establecer el último punto de datos a leer
+    osc.write('ACQ:MODE HRES')  # Establecer el modo de adquisición en alta resolución
     
-    # Query the horizontal scale and offset
-    horizontal_scale = float(oscilloscope.query("HORIZONTAL:SCALE?"))
-    horizontal_offset = float(oscilloscope.query("HORIZONTAL:POSITION?"))
+    # # Configuración de la gráfica
+    # plt.ion()  # Modo interactivo para actualización en tiempo real
+    # plt.figure()
     
-    # Set up the acquisition parameters
-    oscilloscope.write("DATA:SOURCE CH1")  # Select the desired channel
-    oscilloscope.write("DATA:ENCdg ASCII")  # Set the data encoding to ASCII
-    oscilloscope.write("DATA:WIDTH 1")  # Set the data width to 1 byte per point
+    try:
+        while True:
+            # Leer datos del osciloscopio
+            data = osc.query_binary_values('CURV?', datatype='h', container=np.array)
     
-    # Read the waveform data
-    waveform_data = oscilloscope.query_ascii_values("CURVE?")
-    print(waveform_data)
+            # Calcular el tiempo para cada punto de datos
+            sample_rate = float(osc.query('ACQ:SRAT?'))
+            time_per_sample = 1.0 / sample_rate
+            time_values = np.arange(len(data)) * time_per_sample
+            print(data)
+            # Graficar los datos
+            # plt.clf()
+            # plt.plot(time_values, data)
+            # plt.xlabel('Tiempo (s)')
+            # plt.ylabel('Voltaje (V)')
+            # plt.title('Lectura del Canal 1')
+            # plt.grid(True)
+            # plt.draw()
+            # plt.pause(0.01)
     
-    # Calculate voltage per division and voltages
-    voltage_per_division = vertical_divisions
-    voltages = [(v * voltage_per_division) - vertical_offset for v in waveform_data]
+            time.sleep(0.5)
     
-    # Calculate time values
-    time_values = [(i * horizontal_scale) - horizontal_offset for i in range(len(waveform_data))]
-    
-    # Close the connection
-    oscilloscope.close()
-    rm.close()
-    
-    # Print the first 10 voltage and time values
-    print("Voltage (V):", voltages[:10])
-    print("Time (s):", time_values[:10])
-    
-    
+    except KeyboardInterrupt:
+        # Detener la adquisición y cerrar la conexión
+        osc.write('ACQ:STOPA')
+        osc.close()
+        rm.close()
+
+
+
 # Obtener recursos VISA
 rm = pyvisa.ResourceManager()
 dispositivos_visa = rm.list_resources()
@@ -73,5 +84,6 @@ if len(dispositivos_visa) > 0:
             print("Voltajes del Canal 1:", voltajes)
 else:
     print("No se encontraron dispositivos Visa conectados.")
+
 
 
