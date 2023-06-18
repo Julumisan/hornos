@@ -5,10 +5,15 @@ Created on Tue Mar 28 20:34:57 2023
 @author: Julu
 
 
-v5.1
- 
-Botones disabled, añado el botón de inicio para adquisicion
+v6.0
 
+Tengo que cambiar la funcion de la temp. Hacer que sea solo del volt*100
+Hacer funcion de adquirir voltaje. ¿Cambiar desde ahi? ¿Una func para cada
+fuente? ¿Un nuevo HornoOsci-HornoMulti?
+También tengo que revisar las dependencias, he metido bastantes nuevas, la
+mayoría son librerías de python, pero debo comprobar anyways. 
+
+Voy a tener que meter hilos que comprueben conexiones.
 
 """
 
@@ -16,8 +21,13 @@ import csv
 import tkinter as tk
 import tkinter.filedialog
 import tkinter.messagebox
+import threading
+import time
 import matplotlib.animation as animation
-import pyvisa as visa
+from art_daq import daq
+from Instrumentos import Instrumentos 
+import HornoOsciloscopio
+import HornoMultimetro
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 from tkinter import ttk
@@ -34,9 +44,9 @@ class HornoGUI:
             horno_control (HornoControl): Instancia de la clase HornoControl.
             horno_daq (HornoDAQ): Instancia de la clase HornoDAQ.
         """
+        self.instrumento = Instrumentos.DAQ #Inicializo en el DAQ
         self.horno_control = horno_control
         self.horno_daq = horno_daq
-        self.conexion_visa()
         self.__init_ui__()
     
     def __init_ui__(self):
@@ -141,7 +151,6 @@ class HornoGUI:
         self.horno_control.update_max_temp_button.configure(state='disabled')
         self.horno_control.update_min_temp_button.configure(state='disabled')
         
-        
     def create_adquisition_button(self):
         # Crea un botón para Iniciar adquisición datos.
         self.horno_control.iniciar_adquisicion_button = ttk.Button(
@@ -167,31 +176,45 @@ class HornoGUI:
     def create_exit_button(self):
         # Crea un botón para salir de la aplicación y lo agrega a la ventana principal.
         self.horno_control.exitButton = ttk.Button(
-            self.button_subframe, text="SALIR", command=self.horno_control.root.destroy)
-        self.horno_control.exitButton.grid(row=5, column=0, padx=5, pady=5, sticky=tk.N)
+            self.button_subframe, text="SALIR", command=self.confirm_exit)
+        self.horno_control.exitButton.grid(row=7, column=0, padx=5, pady=5, sticky=tk.N)
         # Cambia el estado inicial de los otros botones a "disabled"
         # self.horno_control.exitButton.configure(state='disabled')
         
     def create_osciloscope_button(self):
         # Crea un botón para salir de la aplicación y lo agrega a la ventana principal.
         self.osciloscope = ttk.Button(
-            self.button_subframe, text="Autoconfiguración Osciloscopio", command=self.osc_autoconfiguration)
+            self.button_subframe, text="Recogida Datos Osciloscopio", command=self.osc_autoconfiguration)
         self.osciloscope.grid(row=3, column=0, padx=5, pady=5, sticky=tk.N)
         # Cambia el estado inicial de los otros botones a "disabled"
-        if self.osciloscopio is None:
-            self.osciloscope.configure(state='disabled')
+        # self.horno_control.exitButton.configure(state='disabled')
         
     def create_multimeter_button(self):
         # Crea un botón para salir de la aplicación y lo agrega a la ventana principal.
         self.multimeter = ttk.Button(
-            self.button_subframe, text="Autoconfiguración Multímetro", command=self.mult_autoconfiguration)
+            self.button_subframe, text="Recogida Datos Multímetro", command=self.mult_autoconfiguration)
         self.multimeter.grid(row=4, column=0, padx=5, pady=5, sticky=tk.N)
         # Cambia el estado inicial de los otros botones a "disabled"
-        if self.multimetro is None: 
-            self.multimeter.configure(state='disabled')
-
-                
+        # self.horno_control.exitButton.configure(state='disabled')
+        
     
+    def create_DAQ_button(self):
+        # Crea un botón para salir de la aplicación y lo agrega a la ventana principal.
+        self.DAQ_button = ttk.Button(
+            self.button_subframe, text="Recogida Datos DAQ", command=self.daq_autoconfiguration)
+        self.DAQ_button.grid(row=5, column=0, padx=5, pady=5, sticky=tk.N)
+        # Cambia el estado inicial de los otros botones a "disabled"
+        # self.horno_control.exitButton.configure(state='disabled')
+        
+        
+    def create_simulation_button(self):
+        # Crea un botón para salir de la aplicación y lo agrega a la ventana principal.
+        self.simulation_button = ttk.Button(
+            self.button_subframe, text="Recogida Datos Simulados", command=self.simulation_autoconfiguration)
+        self.simulation_button.grid(row=6, column=0, padx=5, pady=5, sticky=tk.N)
+        # Cambia el estado inicial de los otros botones a "disabled"
+        # self.horno_control.exitButton.configure(state='disabled')
+        
     def create_button_subframe(self):
         # Crea un subframe para contener los botones
         self.button_subframe = ttk.Frame(self.subframe)
@@ -204,6 +227,8 @@ class HornoGUI:
         self.create_adquisition_button()
         self.create_multimeter_button()
         self.create_osciloscope_button()
+        self.create_DAQ_button()
+        self.create_simulation_button()
         
     def create_subframe_gen(self):
         self.subframe = ttk.Frame(self.horno_control.root)
@@ -306,8 +331,31 @@ class HornoGUI:
         except ValueError:
             tk.messagebox.showerror("Error", "Por favor, ingrese un número válido para la temperatura mínima")
     
-    def update_act_temp(self):
-        self.horno_control.tempG = self.horno_daq.transform_voltage_temp()
+    def update_act_temp(self):       
+        if self.instrumento == Instrumentos.DAQ:
+            try:
+                self.horno_control.tempG = self.horno_daq.transform_voltage_temp()
+            except:    
+                self.horno_control.device_name = None
+                self.start_check_thread()
+        elif self.instrumento == Instrumentos.OSCILOSCOPIO:
+            osc = HornoOsciloscopio.visa_resource(self)
+            if osc is not None:    
+                self.horno_control.tempG = HornoOsciloscopio.get_osc_voltage(self, osc)
+            else:
+                tk.messagebox.showerror("Error", "No se ha podido conectar a osciloscopio")
+                self.instrumento = Instrumentos.DAQ
+        elif self.instrumento == Instrumentos.MULTIMETRO:
+            mult = HornoMultimetro.visa_resource(self)
+            if mult is not None:
+                self.horno_control.tempG = HornoMultimetro.get_mult_voltage(self, mult)
+            else:
+                self.instrumento = Instrumentos.DAQ
+                tk.messagebox.showerror("Error", "No se ha podido conectar a multímetro")
+        elif self.instrumento == Instrumentos.SIMULATION:
+            self.horno_control.tempG = self.horno_daq.random_number_between_20_and_40(self.horno_control.tempG, 0)
+        else:
+            raise ValueError("Instrumento no válido")
         return self.horno_control.tempG
     
     def update_current_temp(self):
@@ -349,7 +397,6 @@ class HornoGUI:
         self.horno_control.pause_button.configure(state='normal')
         self.horno_control.update_max_temp_button.configure(state='normal')
         self.horno_control.update_min_temp_button.configure(state='normal')
-            
         self.horno_control.toggle_start()
         self.horno_control.toggle_pause()
         
@@ -374,53 +421,41 @@ class HornoGUI:
         self.setup_gui()
         tk.mainloop()
         
+    def confirm_exit(self):
+        # Muestra una pantalla de confirmación antes de salir
+        confirm = tkinter.messagebox.askyesno("Confirmación", "¿Estás seguro de que quieres salir?")
+        if confirm:
+            self.horno_control.root.destroy()
+        
         
     def mult_autoconfiguration(self):
-        self.multimetro.write("")
-        self.multimetro.write("")
-        self.multimetro.write("")
-        print (self.multimetro)
+        self.instrumento = Instrumentos.MULTIMETRO
         
     def osc_autoconfiguration(self):
-        self.osciloscopio.write("")
-        self.osciloscopio.write("")
-        self.osciloscopio.write("")
-        print (self.osciloscopio)
+        self.instrumento = Instrumentos.OSCILOSCOPIO
+        tkinter.messagebox.showinfo("Menú de aviso", "Por favor, conecte el CH2 del osciloscopio a tierra")
         
+    def daq_autoconfiguration(self):
+         self.instrumento = Instrumentos.DAQ 
+         
+    def simulation_autoconfiguration(self):
+        self.instrumento = Instrumentos.SIMULATION
         
+    def check_device_name(self):
+        while self.horno_control.device_name is None:
+            self.horno_control.device_name = daq.get_connected_device()
+            time.sleep(0.1)
+        # self.update_voltage_label()
         
-    def conexion_visa(self):
-        rm = visa.ResourceManager()
-        dispositivos = rm.list_resources()
-        print(dispositivos)
-        visa_devices = []
-        self.osciloscopio = None
-        self.multimetro = None
-        for dispositivo in dispositivos:
-            try:
-                recurso = rm.open_resource(dispositivo)
-                if recurso.resource_name.startswith('USB'):
-                    visa_devices.append(dispositivo)
-                    recurso.close()
-                elif not recurso.resource_name.startswith('ASRL'):
-                    self.multimetro = recurso
-            except visa.VisaIOError:
-                pass                  
-        self.get_info_visa_devices(visa_devices)
-        return visa_devices
+   
+    # Hilos
+    def start_check_thread(self):
+        if not hasattr(self, 'check_thread') or not self.check_thread.is_alive():
+            print("Entro al hilo")
+            self.check_thread = threading.Thread(target=self.check_device_name)
+            self.check_thread.daemon = True  # Hilo se ejecutará en segundo plano idealmente
+            self.check_thread.start()
+        else:
+            print("El hilo ya está en ejecución")
+
     
-    
-    def get_info_visa_devices(self, visa_devices):
-        rm = visa.ResourceManager()
-        for device in visa_devices:           
-            resource = rm.open_resource(device)
-            try:               
-                description = resource.query("*IDN?")
-                print("Dispositivo Visa encontrado:")
-                print(f"  Descripción: {description.strip()}")
-                print(f"  Dirección: {device}")
-                print("")   
-                if "MSO" in description:
-                    self.osciloscopio = resource
-            except visa.VisaIOError:
-                pass

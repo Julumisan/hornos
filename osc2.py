@@ -6,7 +6,6 @@ Created on Mon Jun 12 12:04:16 2023
 """
 
 import pyvisa
-import keyboard
 import time
 # Obtener recursos VISA
 try:
@@ -77,8 +76,7 @@ try:
                     
                     sol = sum(voltajes) / len(voltajes)
                     print("Voltajes del Canal 1:", sol)
-                    if keyboard.is_pressed(' '):
-                        break  # Salir del bucle si se ha presionado una tecla
+
             else:
                 print("No se encontraron dispositivos Visa conectados.")
 finally:
