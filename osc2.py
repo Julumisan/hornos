@@ -32,13 +32,13 @@ try:
                 recurso.write ("CH1:POSition -3")
                 recurso.write ("CH2:POSition -3")     
                 recurso.write("MEASUrement:MEAS1:STATE ON")
-                recurso.write("MEASUrement:MEAS1:SOURCE1 CH1")
+                recurso.write("MEASUrement:MEAS1:SOURCE CH1")
                 recurso.write("MEASUrement:MEAS1:TYPe MEAN")
                 recurso.write("MEASUrement:MEAS2:STATE ON")
-                recurso.write("MEASUrement:MEAS2:SOURCE1 CH2")
+                recurso.write("MEASUrement:MEAS2:SOURCE CH2")
                 recurso.write("MEASUrement:MEAS2:TYPe MEAN")
                 recurso.write("MEASUrement:MEAS3:STATE ON")
-                recurso.write("MEASUrement:MEAS3:SOURCE1 MATH1")
+                recurso.write("MEASUrement:MEAS3:SOURCE MATH1")
                 recurso.write("MEASUrement:MEAS3:TYPe MEAN")
                 recurso.write("SELECT:CH1 ON;CH2 ON")
                 recurso.write("MATH1:DEFINE \"CH1-CH2\"")
@@ -48,7 +48,7 @@ try:
                 time.sleep(1)
 
                 
-                recurso.write(":ACQUIRE:STATE ON")
+                # recurso.write(":ACQUIRE:STATE ON")
 
                
 
