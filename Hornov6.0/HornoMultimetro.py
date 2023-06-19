@@ -17,7 +17,7 @@ Author: julu
 """
 
 import pyvisa as visa
-import time
+
 
 def visa_resource(self):
     """
@@ -26,27 +26,21 @@ def visa_resource(self):
     Returns:
         mult (object): Multimeter object if a device with "PRO" in its description is found, None otherwise.
     """
-    try:
-        self.rm = visa.ResourceManager()
-        dispositivos = self.rm.list_resources()
-
-        for device in dispositivos:
-            recurso = self.rm.open_resource(device)
-            description = recurso.query("*IDN?")
-            print("Visa Device Found:")
-            print(f"  Description: {description.strip()}")
-            print(f"  Address: {device}")
-            print("")
-            # Additional actions if the description contains "PRO"
+    self.rm = visa.ResourceManager()
+    dispositivos = self.rm.list_resources()
+    for device in dispositivos:         
+        try:  
+            resource = self.rm.open_resource(device)
+            description = resource.query("*IDN?")
+            print("Dispositivo Visa encontrado:")
+            print(f"  Descripción: {description.strip()}")
+            print(f"  Dirección: {device}")
+            print("")   
             if "PRO" in description:
-                recurso.write("SENS:FUNC1 \"VOLT:DC\" ")
-                mult = recurso
-            else:
-                print("No Visa devices found.")
-            return mult
-    except:
-        recurso.close()
-        self.rm.close()
+                multimetro = resource
+                return multimetro
+        except visa.VisaIOError:
+            pass
 
 def get_mult_voltage(self, mult):
     """
@@ -58,6 +52,9 @@ def get_mult_voltage(self, mult):
     Returns:
         float: Voltage reading from the multimeter.
     """
-    voltaje = mult.query(":DATA?")
-    tempG = voltaje * 100
+    voltaje = mult.query("MEASure:VOLTage:DC?")
+    tempG = float(voltaje) * 100
+    print (tempG)
     return tempG
+
+

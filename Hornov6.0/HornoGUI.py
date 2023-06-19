@@ -47,6 +47,11 @@ class HornoGUI:
         self.instrumento = Instrumentos.DAQ #Inicializo en el DAQ
         self.horno_control = horno_control
         self.horno_daq = horno_daq
+        self.para = False
+        self.osc = None
+        self.mult = None
+        self.PrimeraVezOsci = True
+        self.PrimeraVezMulti = True
         self.__init_ui__()
     
     def __init_ui__(self):
@@ -286,16 +291,19 @@ class HornoGUI:
     
     def check_temperature_range(self):
         """Verifica si la temperatura está dentro del rango establecido."""
-        if self.horno_control.max_temp < self.horno_control.tempG:
-            print("Estamos calientes")
-            self.horno_daq.warm_state()
-    
-        elif self.horno_control.tempG < self.horno_control.min_temp:
-            print("Estamos frios")
-            self.horno_daq.cold_state()
-        else:
-            print("tamo bien")
-            self.horno_daq.mild_state()
+        try:
+            if self.horno_control.max_temp < self.horno_control.tempG:
+                print("Estamos calientes")
+                self.horno_daq.warm_state()
+        
+            elif self.horno_control.tempG < self.horno_control.min_temp:
+                print("Estamos frios")
+                self.horno_daq.cold_state()
+            else:
+                print("tamo bien")
+                self.horno_daq.mild_state()
+        except:
+            tk.messagebox.showerror("Error", "Compruebe que la DAQ esté conectada.")
     
     def update_max_temp(self):
         """
@@ -331,27 +339,47 @@ class HornoGUI:
         except ValueError:
             tk.messagebox.showerror("Error", "Por favor, ingrese un número válido para la temperatura mínima")
     
-    def update_act_temp(self):       
+    def update_act_temp(self):      
+        
         if self.instrumento == Instrumentos.DAQ:
             try:
                 self.horno_control.tempG = self.horno_daq.transform_voltage_temp()
             except:    
                 self.horno_control.device_name = None
                 self.start_check_thread()
-        elif self.instrumento == Instrumentos.OSCILOSCOPIO:
-            osc = HornoOsciloscopio.visa_resource(self)
-            if osc is not None:    
-                self.horno_control.tempG = HornoOsciloscopio.get_osc_voltage(self, osc)
-            else:
+        elif self.instrumento == Instrumentos.OSCILOSCOPIO: 
+            try:
+                if self.PrimeraVezOsci:
+                    self.PrimeraVezOsci = False
+                    self.osc = HornoOsciloscopio.visa_resource(self) 
+                    self.horno_control.tempG = HornoOsciloscopio.get_osc_voltage(self, self.osc)
+                    
+                if self.osc is not None:
+                    self.start_osci_thread()
+                else:
+                    self.osc = HornoOsciloscopio.visa_resource(self) 
+                    tk.messagebox.showerror("Error", "No se ha podido conectar a osciloscopio")
+                    self.instrumento = Instrumentos.DAQ
+            except:
+                self.osc = HornoOsciloscopio.visa_resource(self) 
                 tk.messagebox.showerror("Error", "No se ha podido conectar a osciloscopio")
-                self.instrumento = Instrumentos.DAQ
+                pass
+                
         elif self.instrumento == Instrumentos.MULTIMETRO:
-            mult = HornoMultimetro.visa_resource(self)
-            if mult is not None:
-                self.horno_control.tempG = HornoMultimetro.get_mult_voltage(self, mult)
-            else:
-                self.instrumento = Instrumentos.DAQ
-                tk.messagebox.showerror("Error", "No se ha podido conectar a multímetro")
+            try:
+                if self.PrimeraVezMulti:
+                    self.PrimeraVezMulti = False
+                    self.mult = HornoMultimetro.visa_resource(self) 
+                    self.horno_control.tempG = HornoMultimetro.get_mult_voltage(self, self.mult)             
+                if self.mult is not None:
+                    self.start_multi_thread()
+                else:
+                    self.mult = HornoMultimetro.visa_resource(self)         
+                    tk.messagebox.showerror("Error", "No se ha podido conectar a multimetro")
+                    self.instrumento = Instrumentos.DAQ
+            except:
+                tk.messagebox.showerror("Error", "No se ha podido conectar a multimetro")
+                pass
         elif self.instrumento == Instrumentos.SIMULATION:
             self.horno_control.tempG = self.horno_daq.random_number_between_20_and_40(self.horno_control.tempG, 0)
         else:
@@ -425,6 +453,13 @@ class HornoGUI:
         # Muestra una pantalla de confirmación antes de salir
         confirm = tkinter.messagebox.askyesno("Confirmación", "¿Estás seguro de que quieres salir?")
         if confirm:
+            self.para = True
+            if hasattr(self, 'osci_thread'):
+                self.osci_thread.join()
+            if hasattr(self, 'check_thread'):
+                self.check_thread.join()
+            if hasattr(self, 'multi_thread'):
+                self.multi_thread.join()
             self.horno_control.root.destroy()
         
         
@@ -457,5 +492,41 @@ class HornoGUI:
             self.check_thread.start()
         else:
             print("El hilo ya está en ejecución")
-
+        
+    def start_osci_thread(self):
+        if not hasattr(self, 'osci_thread') or not self.osci_thread.is_alive():
+            self.osci_thread = threading.Thread(target=self.get_osc_voltage_thread) #tupla?
+            self.osci_thread.daemon = True
+            self.osci_thread.start()
+        else:
+            print("El hilo ya está en ejecución")
     
+    def get_osc_voltage_thread(self):
+        print (self.instrumento)
+        while self.instrumento == Instrumentos.OSCILOSCOPIO and not self.para:
+            try:
+                voltage = HornoOsciloscopio.get_osc_voltage(self, self.osc)
+                print (voltage)
+                self.horno_control.tempG = voltage
+            except:
+                self.osc = None
+                break
+            
+    def start_multi_thread(self):
+        if not hasattr(self, 'multi_thread') or not self.multi_thread.is_alive():
+            self.multi_thread = threading.Thread(target=self.get_mult_voltage_thread) #tupla?
+            self.multi_thread.daemon = True
+            self.multi_thread.start()
+        else:
+            print("El hilo ya está en ejecución")
+    
+    def get_mult_voltage_thread(self):
+        print (self.instrumento)
+        while self.instrumento == Instrumentos.MULTIMETRO and not self.para:
+            try:
+                voltage = HornoMultimetro.get_mult_voltage(self, self.mult)
+                print (voltage)
+                self.horno_control.tempG = voltage
+            except:
+                self.mult = None
+                break
