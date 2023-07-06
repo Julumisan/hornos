@@ -2,18 +2,11 @@
 """
 Created on Sun Jun 18 17:05:09 2023
 
-@author: julu
-"""
-
-# -*- coding: utf-8 -*-
-"""
-Created on Sun Jun 18 17:05:09 2023
-
 
 This script interacts with VISA devices to retrieve
 its information and perform additional actions on the multimeter.
 
-Author: julu
+@author: julu
 """
 
 import pyvisa as visa

@@ -39,30 +39,29 @@ class HornoDAQ:
 
     def transform_voltage_temp(self):
         """
-        Esta función convierte la lectura de voltaje del canal analógico AI0
-        en una lectura de temperatura en grados Celsius.
-        La función multiplica la lectura de voltaje por 100
-        y devuelve el valor de temperatura resultante.
-
-        @return: el valor de la temperatura en grados Celsius.
+        Convierte la lectura de voltaje del canal analógico AI0 en una lectura de temperatura en grados Celsius.
+        Multiplica la lectura de voltaje por 100 y devuelve el valor de temperatura resultante.
+    
+        Returns:
+            El valor de la temperatura en grados Celsius.
         """
         # Cambiar de Voltaje a temperatura
-        temp = daq.get_voltage_analogic(self.device_name+"/ai0")*100
+        temp = daq.get_voltage_analogic(self.device_name + "/ai0") * 100
         # print("Temperatura leída: {:.2f} ºC".format(temp))
         return temp
-
-
+    
+    
     def random_number_between_20_and_40(self, last_number=None, increment=0):
         """
-        Genera un número pseudoaleatorio entre 20 y 40,
-        con una variación máxima de 0.2 respecto al número anterior.
-        Permite un incremento por parámetro para poder simular
-        la temperatura en ausencia de la DAQ.
+        Genera un número pseudoaleatorio entre 20 y 40, con una variación máxima de 0.2 respecto al número anterior.
+        Permite un incremento por parámetro para simular la temperatura en ausencia de la DAQ.
     
-        @param last_number: el último número generado (opcional).
-        @param increment: el valor de incremento a sumar al número generado (opcional).
+        Args:
+            last_number: El último número generado (opcional).
+            increment: El valor de incremento a sumar al número generado (opcional).
     
-        @return: el número aleatorio generado, con un máximo de variación de 0.2 respecto al número anterior.
+        Returns:
+            El número aleatorio generado, con un máximo de variación de 0.2 respecto al número anterior.
         """
     
         # Definir el rango de números permitidos

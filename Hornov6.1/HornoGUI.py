@@ -5,7 +5,7 @@ Created on Tue Mar 28 20:34:57 2023
 @author: Julu
 
 
-v6.0
+v6.1
 
 Tengo que cambiar la funcion de la temp. Hacer que sea solo del volt*100
 Hacer funcion de adquirir voltaje. ¿Cambiar desde ahi? ¿Una func para cada
@@ -32,6 +32,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 from tkinter import ttk
 
+""" Clase HornoGUI para controlar y visualizar la temperatura de un horno."""
 
 class HornoGUI:
     
@@ -67,161 +68,159 @@ class HornoGUI:
        
 
     def create_main_window(self):
-        # Crea la ventana principal de la aplicación.
+        """
+        Crea la ventana principal de la aplicación.
+        """
         self.horno_control.root = tk.Tk()
-        # self.horno_control.root.resizable(0, 0)
-        # Crea un marco para contener los widgets.
         self.horno_control.frame = ttk.Frame(self.horno_control.root)
         self.horno_control.frame.grid(row=0, column=0, sticky=(tk.W+tk.E+tk.N+tk.S))
-        # Expansion
         self.horno_control.root.rowconfigure(1, weight=1)
         self.horno_control.root.columnconfigure(1, weight=1)
-        
-        # Additional configuration for child widgets
         self.horno_control.frame.rowconfigure(0, weight=1)
         self.horno_control.frame.columnconfigure(0, weight=1)
-        
-
-        # self.horno_control.frame.pack()
-        
-        
+    
     def create_temperature_graph(self):
-        # Crea una figura y ejes utilizando la interfaz orientada a objetos.
+        """
+        Crea una gráfica de temperatura utilizando matplotlib y la coloca en el marco.
+        """
         fig = Figure(figsize=(5, 4), dpi=100)
         self.ax = fig.add_subplot(111)
-        
-        # Crea una gráfica utilizando matplotlib y la coloca en la parte superior del marco.
         self.horno_control.canvas = FigureCanvasTkAgg(fig, master=self.horno_control.frame)
         self.horno_control.canvas.draw()
         self.horno_control.canvas.get_tk_widget().grid(row=0, column=0, padx=0, pady=0, sticky=(tk.W, tk.E, tk.N, tk.S))
-        # Escalable
         self.horno_control.root.rowconfigure(0, weight=5)
         self.horno_control.root.columnconfigure(0, weight=5)
         self.create_animation(fig)
-        
+    
     def create_temperature_frame(self):
-        # Crea un marco para contener los widgets de temperatura máxima y mínima.
+        """
+        Crea un marco con etiquetas y widgets relacionados con la temperatura.
+        """
         temp_frame = tk.Frame(self.subframe, bg='lightgray')
         temp_frame.grid(row=0, column=0, padx=5, pady=5, sticky=tk.N)
-        
         temp_frame.rowconfigure(0, weight=0)
         temp_frame.columnconfigure(0, weight=0)
-        
-        # Crea una etiqueta para la temperatura actual y la agrega al marco.
+    
         self.horno_control.current_temp_label = tk.Label(temp_frame, text="Temperatura Actual:", font=("Arial", 14), bg='lightgray')
         self.horno_control.current_temp_label.pack(side=tk.TOP, padx=20)
-        
-        # Crea una etiqueta de solo lectura para mostrar la temperatura actual.
+    
         self.horno_control.current_temp_var = tk.StringVar()
         self.horno_control.current_temp_entry = ttk.Entry(temp_frame, textvariable=self.horno_control.current_temp_var, state="readonly", width=10)
         self.horno_control.current_temp_entry.pack(side=tk.TOP)
-
-        # Crea una subventana para los widgets relacionados con la temperatura mínima.
+    
         min_temp_frame = tk.Frame(temp_frame, bg='lightgray')
         min_temp_frame.pack(side=tk.LEFT)
-
-        # Crea una subventana para los widgets relacionados con la temperatura máxima.
+    
         max_temp_frame = tk.Frame(temp_frame, bg='lightgray')
         max_temp_frame.pack(side=tk.LEFT)
-        
-        # Crea una etiqueta para la temperatura máxima y la agrega a la subventana.
+    
         self.horno_control.max_temp_label = tk.Label(max_temp_frame, text="Temperatura Máxima:", font=("Arial", 14), bg='lightgray')
         self.horno_control.max_temp_label.pack(side=tk.TOP, padx=20)
-
-        # Crea una caja de texto para ingresar la temperatura máxima y la agrega a la subventana.
+    
         self.horno_control.max_temp_entry = ttk.Entry(max_temp_frame)
         self.horno_control.max_temp_entry.insert(0, self.horno_control.max_temp)
         self.horno_control.max_temp_entry.pack(side=tk.TOP)
-
-        # Crea un botón para actualizar la temperatura máxima y lo agrega a la subventana.
+    
         self.horno_control.update_max_temp_button = ttk.Button(
             max_temp_frame, text="Actualizar Máxima", command=self.update_max_temp)
         self.horno_control.update_max_temp_button.pack(side=tk.TOP, pady=10)
-        
-        # Crea una etiqueta para la temperatura mínima y la agrega a la subventana.
+    
         self.horno_control.min_temp_label = tk.Label(min_temp_frame, text="Temperatura Mínima:", font=("Arial", 14), bg='lightgray')
         self.horno_control.min_temp_label.pack(side=tk.TOP, padx=20)
-
-        # Crea una caja de texto para ingresar la temperatura mínima y la agrega a la subventana.
+    
         self.horno_control.min_temp_entry = ttk.Entry(min_temp_frame)
         self.horno_control.min_temp_entry.insert(0, self.horno_control.min_temp)
         self.horno_control.min_temp_entry.pack(side=tk.TOP)
-
-        # Crea un botón para actualizar la temperatura mínima y lo agrega a la subventana.
+    
         self.horno_control.update_min_temp_button = ttk.Button(
             min_temp_frame, text="Actualizar Mínima", command=self.update_min_temp)
         self.horno_control.update_min_temp_button.pack(side=tk.TOP, pady=10)
-        
-        # Cambia el estado inicial de los otros botones a "disabled"
+    
         self.horno_control.update_max_temp_button.configure(state='disabled')
         self.horno_control.update_min_temp_button.configure(state='disabled')
         
     def create_adquisition_button(self):
-        # Crea un botón para Iniciar adquisición datos.
+        """
+        Crea un botón para iniciar la adquisición de datos.
+        """
         self.horno_control.iniciar_adquisicion_button = ttk.Button(
-        self.button_subframe, text="Iniciar adquisición datos", command=self.iniciar_adquisicion, state='normal')
+            self.button_subframe, text="Iniciar adquisición datos", command=self.iniciar_adquisicion, state='normal')
         self.horno_control.iniciar_adquisicion_button.grid(row=0, column=0, padx=5, pady=5, sticky=tk.N)
     
     def create_save_button(self):
-        # Crea el botón de guardar los datos
+        """
+        Crea el botón para guardar los datos.
+        """
         self.horno_control.save_button = ttk.Button(
             self.button_subframe, text="Guardar datos", command=self.exportar_datos_csv)
         self.horno_control.save_button.grid(row=2, column=0, padx=5, pady=5, sticky=tk.N)
         # Cambia el estado inicial de los otros botones a "disabled"
         self.horno_control.save_button.configure(state='disabled')
-        
+    
     def create_pause_button(self):
-        # Crea el botón de pausa
+        """
+        Crea el botón de pausa.
+        """
         self.horno_control.pause_button = ttk.Button(
-        self.button_subframe, text="Pausar", command=self.horno_control.toggle_pause)
-        self.horno_control.pause_button.grid(row=1, column=0, padx=5, pady=5, sticky=tk.N)     
+            self.button_subframe, text="Pausar", command=self.horno_control.toggle_pause)
+        self.horno_control.pause_button.grid(row=1, column=0, padx=5, pady=5, sticky=tk.N)
         # Cambia el estado inicial de los otros botones a "disabled"
-        self.horno_control.pause_button.configure(state='disabled')      
-        
+        self.horno_control.pause_button.configure(state='disabled')
+    
     def create_exit_button(self):
-        # Crea un botón para salir de la aplicación y lo agrega a la ventana principal.
+        """
+        Crea un botón para salir de la aplicación.
+        """
         self.horno_control.exitButton = ttk.Button(
             self.button_subframe, text="SALIR", command=self.confirm_exit)
         self.horno_control.exitButton.grid(row=7, column=0, padx=5, pady=5, sticky=tk.N)
         # Cambia el estado inicial de los otros botones a "disabled"
         # self.horno_control.exitButton.configure(state='disabled')
-        
+    
     def create_osciloscope_button(self):
-        # Crea un botón para salir de la aplicación y lo agrega a la ventana principal.
+        """
+        Crea un botón para configurar la recogida de datos del osciloscopio.
+        """
         self.osciloscope = ttk.Button(
             self.button_subframe, text="Recogida Datos Osciloscopio", command=self.osc_autoconfiguration)
         self.osciloscope.grid(row=3, column=0, padx=5, pady=5, sticky=tk.N)
         # Cambia el estado inicial de los otros botones a "disabled"
         # self.horno_control.exitButton.configure(state='disabled')
-        
+    
     def create_multimeter_button(self):
-        # Crea un botón para salir de la aplicación y lo agrega a la ventana principal.
+        """
+        Crea un botón para configurar la recogida de datos del multímetro.
+        """
         self.multimeter = ttk.Button(
             self.button_subframe, text="Recogida Datos Multímetro", command=self.mult_autoconfiguration)
         self.multimeter.grid(row=4, column=0, padx=5, pady=5, sticky=tk.N)
         # Cambia el estado inicial de los otros botones a "disabled"
         # self.horno_control.exitButton.configure(state='disabled')
-        
     
     def create_DAQ_button(self):
-        # Crea un botón para salir de la aplicación y lo agrega a la ventana principal.
+        """
+        Crea un botón para configurar la recogida de datos del DAQ.
+        """
         self.DAQ_button = ttk.Button(
             self.button_subframe, text="Recogida Datos DAQ", command=self.daq_autoconfiguration)
         self.DAQ_button.grid(row=5, column=0, padx=5, pady=5, sticky=tk.N)
         # Cambia el estado inicial de los otros botones a "disabled"
         # self.horno_control.exitButton.configure(state='disabled')
-        
-        
+    
     def create_simulation_button(self):
-        # Crea un botón para salir de la aplicación y lo agrega a la ventana principal.
+        """
+        Crea un botón para configurar la recogida de datos simulados.
+        """
         self.simulation_button = ttk.Button(
             self.button_subframe, text="Recogida Datos Simulados", command=self.simulation_autoconfiguration)
         self.simulation_button.grid(row=6, column=0, padx=5, pady=5, sticky=tk.N)
         # Cambia el estado inicial de los otros botones a "disabled"
         # self.horno_control.exitButton.configure(state='disabled')
-        
+    
     def create_button_subframe(self):
-        # Crea un subframe para contener los botones
+        """
+        Crea un subframe para contener los botones.
+        """
         self.button_subframe = ttk.Frame(self.subframe)
         self.button_subframe.grid(row=1, column=0, padx=5, pady=40, sticky=tk.N)
         self.button_subframe.rowconfigure(0, weight=1)
@@ -234,18 +233,22 @@ class HornoGUI:
         self.create_osciloscope_button()
         self.create_DAQ_button()
         self.create_simulation_button()
-        
+    
     def create_subframe_gen(self):
+        """
+        Crea un subframe general que contiene los botones, la gráfica y otros elementos.
+        """
         self.subframe = ttk.Frame(self.horno_control.root)
         self.subframe.grid(row=0, column=1, padx=5, pady=5, sticky=tk.E+tk.N)
         self.create_button_subframe()
         self.create_temperature_frame()
         self.subframe.rowconfigure(0, weight=5)
         self.subframe.columnconfigure(0, weight=5)
-        
-       
+    
     def create_animation(self, fig: Figure):
-        # Crea una animación para actualizar la gráfica de temperatura en tiempo real.
+        """
+        Crea una animación para actualizar la gráfica de temperatura en tiempo real.
+        """
         self.horno_control.ani = animation.FuncAnimation(
             fig, self.grafica_real_time, interval=500)
         self.horno_control.ani_running = self.horno_control.canvas.get_tk_widget().after(
@@ -339,53 +342,57 @@ class HornoGUI:
         except ValueError:
             tk.messagebox.showerror("Error", "Por favor, ingrese un número válido para la temperatura mínima")
     
-    def update_act_temp(self):      
+    def update_act_temp(self):
+         """
+         Actualiza la temperatura actual en función del instrumento seleccionado.
+         """
+         if self.instrumento == Instrumentos.DAQ:
+             try:
+                 self.horno_control.tempG = self.horno_daq.transform_voltage_temp()
+             except:
+                 self.horno_control.device_name = None
+                 self.start_check_thread()  # Inicia el hilo de verificación del dispositivo
+         elif self.instrumento == Instrumentos.OSCILOSCOPIO:
+             try:
+                 if self.PrimeraVezOsci:
+                     self.PrimeraVezOsci = False
+                     self.osc = HornoOsciloscopio.visa_resource(self)
+                     self.horno_control.tempG = HornoOsciloscopio.get_osc_voltage(self, self.osc)
+                 
+                 if self.osc is not None:
+                     self.start_osci_thread()  # Inicia el hilo del osciloscopio para obtener el voltaje
+                 else:
+                     self.osc = HornoOsciloscopio.visa_resource(self)
+                     tk.messagebox.showerror("Error", "No se ha podido conectar a osciloscopio")
+                     self.instrumento = Instrumentos.DAQ
+             except:
+                 self.osc = HornoOsciloscopio.visa_resource(self)
+                 tk.messagebox.showerror("Error", "No se ha podido conectar a osciloscopio")
+                 pass
+                 
+         elif self.instrumento == Instrumentos.MULTIMETRO:
+             try:
+                 if self.PrimeraVezMulti:
+                     self.PrimeraVezMulti = False
+                     self.mult = HornoMultimetro.visa_resource(self)
+                     self.horno_control.tempG = HornoMultimetro.get_mult_voltage(self, self.mult)
+                 
+                 if self.mult is not None:
+                     self.start_multi_thread()  # Inicia el hilo del multímetro para obtener el voltaje
+                 else:
+                     self.mult = HornoMultimetro.visa_resource(self)
+                     tk.messagebox.showerror("Error", "No se ha podido conectar a multimetro")
+                     self.instrumento = Instrumentos.DAQ
+             except:
+                 tk.messagebox.showerror("Error", "No se ha podido conectar a multimetro")
+                 pass
+         elif self.instrumento == Instrumentos.SIMULATION:
+             self.horno_control.tempG = self.horno_daq.random_number_between_20_and_40(self.horno_control.tempG, 0)
+         else:
+             raise ValueError("Instrumento no válido")
+             
+         return self.horno_control.tempG
         
-        if self.instrumento == Instrumentos.DAQ:
-            try:
-                self.horno_control.tempG = self.horno_daq.transform_voltage_temp()
-            except:    
-                self.horno_control.device_name = None
-                self.start_check_thread()
-        elif self.instrumento == Instrumentos.OSCILOSCOPIO: 
-            try:
-                if self.PrimeraVezOsci:
-                    self.PrimeraVezOsci = False
-                    self.osc = HornoOsciloscopio.visa_resource(self) 
-                    self.horno_control.tempG = HornoOsciloscopio.get_osc_voltage(self, self.osc)
-                    
-                if self.osc is not None:
-                    self.start_osci_thread()
-                else:
-                    self.osc = HornoOsciloscopio.visa_resource(self) 
-                    tk.messagebox.showerror("Error", "No se ha podido conectar a osciloscopio")
-                    self.instrumento = Instrumentos.DAQ
-            except:
-                self.osc = HornoOsciloscopio.visa_resource(self) 
-                tk.messagebox.showerror("Error", "No se ha podido conectar a osciloscopio")
-                pass
-                
-        elif self.instrumento == Instrumentos.MULTIMETRO:
-            try:
-                if self.PrimeraVezMulti:
-                    self.PrimeraVezMulti = False
-                    self.mult = HornoMultimetro.visa_resource(self) 
-                    self.horno_control.tempG = HornoMultimetro.get_mult_voltage(self, self.mult)             
-                if self.mult is not None:
-                    self.start_multi_thread()
-                else:
-                    self.mult = HornoMultimetro.visa_resource(self)         
-                    tk.messagebox.showerror("Error", "No se ha podido conectar a multimetro")
-                    self.instrumento = Instrumentos.DAQ
-            except:
-                tk.messagebox.showerror("Error", "No se ha podido conectar a multimetro")
-                pass
-        elif self.instrumento == Instrumentos.SIMULATION:
-            self.horno_control.tempG = self.horno_daq.random_number_between_20_and_40(self.horno_control.tempG, 0)
-        else:
-            raise ValueError("Instrumento no válido")
-        return self.horno_control.tempG
-    
     def update_current_temp(self):
         """Define una función que actualice el valor de la etiqueta de temperatura actual."""
         temp = self.update_act_temp()
@@ -448,43 +455,50 @@ class HornoGUI:
         """
         self.setup_gui()
         tk.mainloop()
-        
+    
     def confirm_exit(self):
-        # Muestra una pantalla de confirmación antes de salir
+        """
+        Muestra una pantalla de confirmación antes de salir y realiza las acciones necesarias al confirmar la salida.
+        """
         confirm = tkinter.messagebox.askyesno("Confirmación", "¿Estás seguro de que quieres salir?")
         if confirm:
             self.para = True
             if hasattr(self, 'osci_thread'):
-                self.osci_thread.join()
+                self.osci_thread.join()  # Espera a que el hilo del osciloscopio termine antes de salir
             if hasattr(self, 'check_thread'):
-                self.check_thread.join()
+                self.check_thread.join()  # Espera a que el hilo de verificación del dispositivo termine antes de salir
             if hasattr(self, 'multi_thread'):
-                self.multi_thread.join()
-            self.horno_control.root.destroy()
-        
+                self.multi_thread.join()  # Espera a que el hilo del multímetro termine antes de salir
+            self.horno_control.root.destroy()  # Cierra la ventana principal y finaliza la aplicación
         
     def mult_autoconfiguration(self):
+        """Configura el instrumento en el modo Multímetro."""
         self.instrumento = Instrumentos.MULTIMETRO
-        
+    
     def osc_autoconfiguration(self):
-        self.instrumento = Instrumentos.OSCILOSCOPIO
+        """Configura el instrumento en el modo Osciloscopio."""
         tkinter.messagebox.showinfo("Menú de aviso", "Por favor, conecte el CH2 del osciloscopio a tierra")
-        
+        self.instrumento = Instrumentos.OSCILOSCOPIO
+
+    
     def daq_autoconfiguration(self):
-         self.instrumento = Instrumentos.DAQ 
-         
+        """Configura el instrumento en el modo DAQ (Data Acquisition)."""
+        self.instrumento = Instrumentos.DAQ
+    
     def simulation_autoconfiguration(self):
+        """Configura el instrumento en el modo Simulación."""
         self.instrumento = Instrumentos.SIMULATION
-        
+    
     def check_device_name(self):
+        """Verifica el nombre del dispositivo."""
         while self.horno_control.device_name is None and not self.para:
             self.horno_control.device_name = daq.get_connected_device()
             time.sleep(0.1)
         # self.update_voltage_label()
-        
-   
+    
     # Hilos
     def start_check_thread(self):
+        """Inicia el hilo para verificar el nombre del dispositivo."""
         if not hasattr(self, 'check_thread') or not self.check_thread.is_alive():
             print("Entro al hilo")
             self.check_thread = threading.Thread(target=self.check_device_name)
@@ -492,40 +506,44 @@ class HornoGUI:
             self.check_thread.start()
         else:
             print("El hilo ya está en ejecución")
-        
+    
     def start_osci_thread(self):
+        """Inicia el hilo para obtener el voltaje del osciloscopio."""
         if not hasattr(self, 'osci_thread') or not self.osci_thread.is_alive():
-            self.osci_thread = threading.Thread(target=self.get_osc_voltage_thread) #tupla?
+            self.osci_thread = threading.Thread(target=self.get_osc_voltage_thread)
             self.osci_thread.daemon = True
             self.osci_thread.start()
         else:
             print("El hilo ya está en ejecución")
     
     def get_osc_voltage_thread(self):
-        print (self.instrumento)
+        """Hilo para obtener el voltaje del osciloscopio."""
+        print(self.instrumento)
         while self.instrumento == Instrumentos.OSCILOSCOPIO and not self.para:
             try:
                 voltage = HornoOsciloscopio.get_osc_voltage(self, self.osc)
-                print (voltage)
+                print(voltage)
                 self.horno_control.tempG = voltage
             except:
                 self.osc = None
                 break
-            
+    
     def start_multi_thread(self):
+        """Inicia el hilo para obtener el voltaje del multímetro."""
         if not hasattr(self, 'multi_thread') or not self.multi_thread.is_alive():
-            self.multi_thread = threading.Thread(target=self.get_mult_voltage_thread) #tupla?
+            self.multi_thread = threading.Thread(target=self.get_mult_voltage_thread)
             self.multi_thread.daemon = True
             self.multi_thread.start()
         else:
             print("El hilo ya está en ejecución")
     
     def get_mult_voltage_thread(self):
-        print (self.instrumento)
+        """Hilo para obtener el voltaje del multímetro."""
+        print(self.instrumento)
         while self.instrumento == Instrumentos.MULTIMETRO and not self.para:
             try:
                 voltage = HornoMultimetro.get_mult_voltage(self, self.mult)
-                print (voltage)
+                print(voltage)
                 self.horno_control.tempG = voltage
             except:
                 self.mult = None

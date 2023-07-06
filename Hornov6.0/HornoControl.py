@@ -5,7 +5,7 @@ Created on Wed Mar 22 10:54:52 2023
 
 @author: Julu
 
-Versión 5.1 del Horno. Basada en la v5.0. Esta vez con uso de mi propia
+Versión 6.1 del Horno. Basada en la v5.0. Esta vez con uso de mi propia
 librería art-daq. La cual se descarga a través de pip install art-daq.
 También está dentro de una clase, mejorando el estilo de programación para
 que no esté todo tirado. Añado funcionalidades para poder trastear sin
@@ -29,6 +29,8 @@ Tareas que realiza:     Control de Horno.
                         Mejores comentarios.
                         Mejor GUI.
                         Enseña el valor de la temp Actual de manera constante-
+                        Hilos para controlar conexiones
+                        SCPI opciones
 """
 
 

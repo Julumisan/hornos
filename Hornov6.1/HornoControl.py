@@ -5,13 +5,7 @@ Created on Wed Mar 22 10:54:52 2023
 
 @author: Julu
 
-Versión 5.1 del Horno. Basada en la v5.0. Esta vez con uso de mi propia
-librería art-daq. La cual se descarga a través de pip install art-daq.
-También está dentro de una clase, mejorando el estilo de programación para
-que no esté todo tirado. Añado funcionalidades para poder trastear sin
-necesidad de la tarjeta. Mejora de comentarios, para que tenga el estilo
-correcto. Añadido que enseñe el valor de la temp max y minima de manera
-automática.
+Versión 6.1 del Horno. Basada en la v6.0. Comentarios de la 6.0 mejorados
 
 
 Mejoras TO DO:   Creación de botón de configuración automática de

@@ -7,11 +7,12 @@ Created on Tue Mar 21 20:29:59 2023
 
 import csv
 import matplotlib.pyplot as plt
-# import sys
+
 
 
 
 def leer_datos_csv(nombre_archivo):
+    """Lee los datos de un archivo CSV y crea una gráfica de temperatura."""
     
     # Abrir el archivo con el nombre especificado en modo lectura ('r')
     # El archivo se cierra automáticamente al salir del bloque 'with'
@@ -44,8 +45,3 @@ def leer_datos_csv(nombre_archivo):
     plt.ylabel("Temperatura (°C)")
     plt.legend()
     plt.show()
-       
-
-# Conseguir el nombre de archivo con el subprocess desde menu
-# nombre_archivo = sys.argv[1] 
-# leer_datos_csv(nombre_archivo)
